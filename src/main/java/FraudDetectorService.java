@@ -5,68 +5,35 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.UUID;
 
 public class FraudDetectorService {
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         var consumer = new KafkaConsumer<String, String>(properties());
         consumer.subscribe(Collections.singletonList("ECOMMERCE_NEW_ORDER"));
-        while (true) {
+        while(true) {
             var records = consumer.poll(Duration.ofMillis(100));
             if (!records.isEmpty()) {
-                System.out.println("encontrei "+ records.count()+" registros");
+                System.out.println("Encontrei " + records.count() + " registros");
                 for (var record : records) {
-                    System.out.println("processando novo pedido");
+                    System.out.println("------------------------------------------");
+                    System.out.println("Processing new order, checking for fraud");
                     System.out.println(record.key());
                     System.out.println(record.value());
                     System.out.println(record.partition());
                     System.out.println(record.offset());
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(5000);
                     } catch (InterruptedException e) {
+                        // ignoring
                         e.printStackTrace();
                     }
-                    System.out.println("pedido processado");
+                    System.out.println("Order processed");
                 }
             }
         }
-
-//        var consumer = new KafkaConsumer<String, String>(properties());
-//        consumer.subscribe(Collections.singletonList("ECOMMERCE_NEW_ORDER"));
-//        while(true) {
-//            var records = consumer.poll(Duration.ofMillis(100));
-//            if (!records.isEmpty()) {
-//                System.out.println("Encontrei " + records.count() + " registros");
-//                for (var record : records) {
-//                    System.out.println("------------------------------------------");
-//                    System.out.println("Processing new order, checking for fraud");
-//                    System.out.println(record.key());
-//                    System.out.println(record.value());
-//                    System.out.println(record.partition());
-//                    System.out.println(record.offset());
-//                    try {
-//                        Thread.sleep(5000);
-//                    } catch (InterruptedException e) {
-//                        // ignoring
-//                        e.printStackTrace();
-//                    }
-//                    System.out.println("Order processed");
-//                }
-//            }
-//        }
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
     private static Properties properties() {
         var properties = new Properties();
@@ -74,7 +41,7 @@ public class FraudDetectorService {
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, FraudDetectorService.class.getSimpleName());
+        properties.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, FraudDetectorService.class.getSimpleName() + "-" + UUID.randomUUID().toString());
         return properties;
-
     }
 }
